@@ -14,7 +14,9 @@ public class WordLadder{
     static ArrayList<String> dict;
     static HashMap<String, Boolean> visited;
     static Stack<String> pathTrace;
-
+    static Map<String,String> bfs_prev;
+    static Map<String,Integer> bfs_distTo;
+    
     public static ArrayList<String> getShortenedDict(int length) throws IOException
     {
 	ArrayList<String> data=new ArrayList<String>();
@@ -107,7 +109,7 @@ public class WordLadder{
     }
 
 
-    //use DFS
+    //use DepthFirstSearch
     public static void dfs(Map<String,Word> graph, String cur, String dst) {
 	//System.out.println("dfs: " +cur);
 	visited.put(cur,true);
@@ -133,6 +135,52 @@ public class WordLadder{
 	pathTrace.pop();
     }
 
+    //BreadthFirstSearch -- Finds Shortest path
+    public static void bfs(Map<String,Word> graph, String cur, String dst) {
+	bfs_prev = new HashMap<String,String>();
+	bfs_distTo = new HashMap<String,Integer>();
+
+	for(Map.Entry entry : graph.entrySet()) {
+	    String keyWord = (String)entry.getKey();
+	    bfs_distTo.put(keyWord,1000000);
+	}
+	bfs_distTo.put(cur,0);
+	visited.put(cur,true);
+
+	ArrayList<String> pathQueue = new ArrayList<String>();
+	pathQueue.add(cur);
+
+	while(!pathQueue.isEmpty()) {
+	    String qCur = pathQueue.remove(0); 
+
+	    for(Word child:graph.get(qCur).getAdj()) {
+		String childString = child.getValue();
+
+		if(!visited.get(childString)) {
+		    visited.put(childString, true);
+		    bfs_prev.put(childString, qCur);
+		    bfs_distTo.put(childString, bfs_distTo.get(qCur)+1);
+
+		    if(childString.equals(dst)){
+			System.out.println("found destination using Breadth First Search:");
+			System.out.print(dst + " -> ");
+			String retrace = childString;;
+			while(!retrace.equals(cur)) {
+			    retrace = bfs_prev.get(retrace);
+			    System.out.print(retrace + " -> ");
+			}
+			System.out.println("END\n");
+
+			return;
+		    }
+
+		    pathQueue.add(childString);
+		}
+	    }
+	}
+    }
+
+
     public static boolean findPath(Map<String,Word> graph, String start, String end) {
 	
 	//use some path finding graph algorithm to find shortest path
@@ -145,7 +193,8 @@ public class WordLadder{
 
 	System.out.println("Before:" +visited.get(end));
 
-	dfs(graph, start,end);
+	//dfs(graph, start,end);
+	bfs(graph,start,end);
 
 	System.out.println("After:" +visited.get(end));
 	return visited.get(end);
